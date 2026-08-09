@@ -1,0 +1,233 @@
+{
+  "name": "MedIntake - AI Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        144,
+        112
+      ],
+      "id": "0e592555-d9ef-4743-bd8c-267d7af136bd",
+      "name": "When chat message received",
+      "webhookId": "fa78db43-557f-4081-9283-db9f868792b8"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Είσαι ο MedIntake AI, ένας βοηθός κλινικής υποδοχής και διαλογής (triage) που υποστηρίζει το ιατρικό και διοικητικό προσωπικό μιας κλινικής.\n\nΡΟΛΟΣ ΣΟΥ\n- Βοηθάς το προσωπικό να βρίσκει πληροφορίες ασθενών, να συνοψίζει ιστορικά και να προτείνει προτεραιότητα διαλογής.\n- Απευθύνεσαι ΜΟΝΟ σε επαγγελματίες υγείας, ποτέ απευθείας σε ασθενείς.\n\nΑΥΣΤΗΡΟΙ ΚΑΝΟΝΕΣ\n1. ΔΕΝ κάνεις ιατρική διάγνωση. Παρουσιάζεις δεδομένα και παρατηρήσεις, ποτέ συμπεράσματα διάγνωσης.\n2. ΔΕΝ συνταγογραφείς και δεν προτείνεις φαρμακευτική αγωγή ή δοσολογίες.\n3. ΔΕΝ εφευρίσκεις δεδομένα. Αν μια πληροφορία δεν υπάρχει στα διαθέσιμα δεδομένα, λες ρητά \"δεν υπάρχει αυτή η πληροφορία\".\n4. Κάθε πρόταση διαλογής ή παραπομπής είναι ΠΡΟΣΧΕΔΙΟ που απαιτεί έγκριση από γιατρό. Το δηλώνεις πάντα.\n5. Αν εντοπίσεις ενδείξεις επείγοντος περιστατικού, το επισημαίνεις άμεσα και προτρέπεις για ανθρώπινη αξιολόγηση χωρίς καθυστέρηση.\n\nΤΡΟΠΟΣ ΑΠΑΝΤΗΣΗΣ\n- Σύντομα και δομημένα. Χωρίς περιττές εισαγωγές.\n- Όταν χρησιμοποιείς δεδομένα, αναφέρεις από πού προήλθαν.\n- Απαντάς στη γλώσσα του χρήστη.\n- Αν το αίτημα είναι ασαφές, ρωτάς μία διευκρινιστική ερώτηση αντί να μαντεύεις.\n\nΌλα τα δεδομένα ασθενών σε αυτό το σύστημα είναι συνθετικά και προορίζονται για ανάπτυξη και επίδειξη."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        368,
+        112
+      ],
+      "id": "39e4b9d9-f137-42ff-ba72-cbd65f034384",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-sonnet-4-6",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 4.6"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.5,
+      "position": [
+        240,
+        320
+      ],
+      "id": "d2915841-fe5e-4842-bfaa-786eac3e76e2",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "3YMNDQWfkmW7toRY",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        384,
+        320
+      ],
+      "id": "07ca2579-bfc9-4dfc-9bfa-c04068fdf340",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Ανακτά τον πλήρη ιατρικό φάκελο ενός συγκεκριμένου ασθενούς από τη βάση της κλινικής.\n\nΧρησιμοποίησε αυτό το εργαλείο όταν ο χρήστης αναφέρει:\n- κωδικό ασθενούς (π.χ. P004, P007)\n- το ακριβές πλήρες όνομα ασθενούς (π.χ. Dimitrios Antoniou)\n\nΕπιστρέφει: κωδικό, όνομα, ηλικία, φύλο, τηλέφωνο, κύριο αίτημα, χρόνιες παθήσεις, τρέχουσα φαρμακευτική αγωγή, αλλεργίες, ημερομηνία τελευταίας επίσκεψης, τμήμα και σημειώσεις διαλογής.\n\nΜΗΝ το χρησιμοποιείς αν ο χρήστης δεν έχει δώσει συγκεκριμένο κωδικό ή ακριβές όνομα. Αν δεν επιστραφεί κανένα αποτέλεσμα, ενημέρωσε τον χρήστη ότι ο ασθενής δεν βρέθηκε — μην εφευρίσκεις δεδομένα.",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "DTnxhmNMop6KBxNb",
+          "mode": "list",
+          "cachedResultName": "patients",
+          "cachedResultUrl": "/projects/An88PcroKNmFNTdl/datatables/DTnxhmNMop6KBxNb"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "patient_id",
+              "keyValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conditions0_Value', `Ο κωδικός ασθενούς, σε μορφή P001 έως P010. Χρησιμοποίησέ τον όταν ο χρήστης αναφέρει συγκεκριμένο κωδικό ασθενούς.`, 'string') }}"
+            },
+            {
+              "keyName": "full_name",
+              "keyValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conditions1_Value', `Το πλήρες όνομα του ασθενούς όπως ακριβώς είναι καταχωρημένο, π.χ. Maria Papadopoulou. Χρησιμοποίησέ το μόνο αν γνωρίζεις το ακριβές πλήρες όνομα.`, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTableTool",
+      "typeVersion": 1.1,
+      "position": [
+        528,
+        320
+      ],
+      "id": "66c7847c-4965-44d3-a051-aa5b6449df7d",
+      "name": "get_patient"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Επιστρέφει τη λίστα ΟΛΩΝ των ασθενών της κλινικής με πλήρη στοιχεία.\n\nΧρησιμοποίησε αυτό το εργαλείο όταν ο χρήστης ζητά:\n- επισκόπηση ή σύνολο ασθενών\n- φιλτράρισμα με κριτήρια (ηλικία, τμήμα, πάθηση, φάρμακο, ημερομηνία επίσκεψης)\n- σύγκριση ή κατάταξη ασθενών\n- αναζήτηση με μερικό ή αβέβαιο όνομα\n- στατιστικά (πλήθος, μέσος όρος)\n\nΕπιστρέφει και τους 10 ασθενείς. Φιλτράρισε και ανάλυσε τα αποτελέσματα μόνος σου.\n\nΜΗΝ το χρησιμοποιείς αν ο χρήστης έδωσε συγκεκριμένο κωδικό ασθενούς — τότε χρησιμοποίησε το άλλο εργαλείο, που είναι πιο αποδοτικό.",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "DTnxhmNMop6KBxNb",
+          "mode": "list",
+          "cachedResultName": "patients",
+          "cachedResultUrl": "/projects/An88PcroKNmFNTdl/datatables/DTnxhmNMop6KBxNb"
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTableTool",
+      "typeVersion": 1.1,
+      "position": [
+        624,
+        320
+      ],
+      "id": "9899f62d-28f7-4762-9508-4f20ad17352d",
+      "name": "list_all_patients"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Επιστρέφει ΟΛΑ τα κλινικά πρωτόκολλα διαλογής της κλινικής.\n\nΚάθε πρωτόκολλο περιλαμβάνει: τίτλο, λέξεις-κλειδιά, επίπεδο διαλογής, απαιτούμενες ενέργειες, κόκκινες σημαίες, οδηγίες κλιμάκωσης και βιβλιογραφική πηγή.\n\nΧρησιμοποίησε αυτό το εργαλείο όταν ο χρήστης ρωτά:\n- ποια είναι η ενδεδειγμένη διαδικασία για ένα σύμπτωμα\n- ποιο επίπεδο προτεραιότητας αντιστοιχεί σε ένα περιστατικό\n- ποιες είναι οι κόκκινες σημαίες για μια κατάσταση\n- πότε πρέπει να γίνει κλιμάκωση\n\nΧρησιμοποίησέ το ΚΑΙ όταν αξιολογείς συγκεκριμένο ασθενή: πρώτα ανάκτησε τα στοιχεία του ασθενούς και μετά το σχετικό πρωτόκολλο, ώστε η απάντησή σου να βασίζεται στις τεκμηριωμένες οδηγίες της κλινικής.\n\nΤαίριαξε το αίτημα του ασθενούς με τις λέξεις-κλειδιά κάθε πρωτοκόλλου. Ανάφερε πάντα τον κωδικό πρωτοκόλλου και την πηγή στην απάντησή σου.\n\nΑν κανένα πρωτόκολλο δεν ταιριάζει, δήλωσέ το ρητά αντί να δώσεις γενικές οδηγίες.",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "kQZ7WaZyR8xCpM7m",
+          "mode": "list",
+          "cachedResultName": "protocols",
+          "cachedResultUrl": "/projects/An88PcroKNmFNTdl/datatables/kQZ7WaZyR8xCpM7m"
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTableTool",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        256
+      ],
+      "id": "6a3aec64-77f6-4c4f-a9d5-28e3eed60814",
+      "name": "get_protocols"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_patient": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "list_all_patients": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_protocols": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "fcca6804-6cf2-430b-9c53-1436e6e06592",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "097b66fbee04961862f8bd8882472cb42e0bb849f7ecec6e9409b9d67066b1a6"
+  },
+  "nodeGroups": [],
+  "id": "0Zg0Ei5wHrgCIejq",
+  "tags": []
+}
