@@ -4,7 +4,6 @@ Clinical intake and triage assistant. Natural language drives real application l
  
 n8n · Claude Sonnet 4.6 · synthetic data only.
  
-![Agent workflow](workflow-1-agent.png)
  
 ## The problem
  
@@ -23,7 +22,6 @@ Two workflows, deliberately split.
  
 **Workflow 2 — deterministic.** Drafts a referral, emails it, pauses for human approval, logs APPROVED or REJECTED. Fixed control flow, because the task requires predictability.
  
-![Referral approval workflow](workflow-2-referral-approval.png)
  
 The LLM sits where judgement is needed, and nowhere else.
  
