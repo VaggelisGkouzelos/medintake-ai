@@ -1,0 +1,372 @@
+{
+  "name": "MedIntake - Referral Approval",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "957b9596-8d6f-4cf0-b633-65607528bab9",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "DTnxhmNMop6KBxNb",
+          "mode": "list",
+          "cachedResultName": "patients",
+          "cachedResultUrl": "/projects/An88PcroKNmFNTdl/datatables/DTnxhmNMop6KBxNb"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "patient_id",
+              "keyValue": "P004"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        16
+      ],
+      "id": "1c6b7c0d-03fd-4a5d-a124-2bd622aea622",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Σύνταξε προσχέδιο ιατρικού παραπεμπτικού για τον παρακάτω ασθενή.\n\nΣΤΟΙΧΕΙΑ ΑΣΘΕΝΟΥΣ:\nΚωδικός: {{ $json.patient_id }}\nΟνοματεπώνυμο: {{ $json.full_name }}\nΗλικία: {{ $json.age }}\nΦύλο: {{ $json.gender }}\nΚύριο αίτημα: {{ $json.primary_complaint }}\nΧρόνιες παθήσεις: {{ $json.chronic_conditions }}\nΦαρμακευτική αγωγή: {{ $json.current_medications }}\nΑλλεργίες: {{ $json.allergies }}\nΤελευταία επίσκεψη: {{ $json.last_visit }}\nΤμήμα: {{ $json.department }}\nΣημειώσεις διαλογής: {{ $json.triage_notes }}\n\nΟΔΗΓΙΕΣ:\nΔομή: Στοιχεία ασθενούς / Λόγος παραπομπής / Σχετικό ιστορικό / Τρέχουσα αγωγή και αλλεργίες / Αιτούμενη ενέργεια.\nΧρησιμοποίησε ΜΟΝΟ τα παραπάνω δεδομένα. Μην προσθέτεις πληροφορίες που δεν αναφέρονται.\nΜην διατυπώνεις διάγνωση. Περιέγραψε ευρήματα και αίτημα αξιολόγησης.\nΞεκίνα το κείμενο με: [ΠΡΟΣΧΕΔΙΟ - ΑΠΑΙΤΕΙΤΑΙ ΙΑΤΡΙΚΗ ΕΓΚΡΙΣΗ]\nΕπίσημο ιατρικό ύφος, μέγιστο 200 λέξεις.",
+        "messages": {
+          "messageValues": []
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        32,
+        -128
+      ],
+      "id": "2128c31a-26b2-4bae-a3c0-a6f59f6d7976",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-6",
+          "cachedResultName": "Claude Sonnet 4.6"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.5,
+      "position": [
+        368,
+        80
+      ],
+      "id": "4bbb0ea7-d5df-4ca8-82c7-919ada8bf439",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "3YMNDQWfkmW7toRY",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "vaggelisgk6@gmail.com",
+        "subject": "=[Έγκριση] Παραπεμπτικό {{ $('Get row(s)').item.json.patient_id }} - {{ $('Get row(s)').item.json.full_name }}",
+        "message": "=Απαιτείται η έγκρισή σας για το παρακάτω προσχέδιο παραπεμπτικού.\n\n{{ $json.text }}\n\n---\nΠαρακαλώ ελέγξτε το περιεχόμενο και επιλέξτε Έγκριση ή Απόρριψη.\nΑυτό το προσχέδιο δημιουργήθηκε αυτόματα και δεν έχει ισχύ χωρίς ιατρική έγκριση.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        336,
+        -128
+      ],
+      "id": "2fbcc564-4bf5-4b12-a50c-751958ba544f",
+      "name": "Send message and wait for response",
+      "webhookId": "86190340-cdbb-4d4a-b5ce-dd9db77cabb2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OmMShkiAqwonhvoA",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e0e8893d-e074-4f67-b459-7a7ea09d4a15",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        560,
+        -128
+      ],
+      "id": "168b17d0-72f0-4780-afca-bf6f7a54bd7c",
+      "name": "Approved?"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "hkCp03VYjyusJZVL",
+          "mode": "list",
+          "cachedResultName": "referral_log",
+          "cachedResultUrl": "/projects/An88PcroKNmFNTdl/datatables/hkCp03VYjyusJZVL"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "patient_id": "={{ $('Get row(s)').item.json.patient_id }}",
+            "referral_text": "={{ $('Basic LLM Chain').item.json.text }}",
+            "status": "APPROVED",
+            "decided_at": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "patient_id",
+              "displayName": "patient_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "referral_text",
+              "displayName": "referral_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "decided_at",
+              "displayName": "decided_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        48
+      ],
+      "id": "041d216e-3796-411c-b586-f6e719e2d7de",
+      "name": "Log Approved"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "hkCp03VYjyusJZVL",
+          "mode": "list",
+          "cachedResultName": "referral_log",
+          "cachedResultUrl": "/projects/An88PcroKNmFNTdl/datatables/hkCp03VYjyusJZVL"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "patient_id": "={{ $('Get row(s)').item.json.patient_id }}",
+            "referral_text": "={{ $('Basic LLM Chain').item.json.text }}",
+            "status": "REJECTED",
+            "decided_at": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "patient_id",
+              "displayName": "patient_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "referral_text",
+              "displayName": "referral_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "decided_at",
+              "displayName": "decided_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        752,
+        -96
+      ],
+      "id": "a1efe2e4-66cc-41f1-be39-1286f24625ed",
+      "name": "Log Rejected"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Log Approved",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "44379281-af0d-4281-b687-5bc433e89469",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "097b66fbee04961862f8bd8882472cb42e0bb849f7ecec6e9409b9d67066b1a6"
+  },
+  "nodeGroups": [],
+  "id": "YPRIF0XusT7RklRA",
+  "tags": []
+}
